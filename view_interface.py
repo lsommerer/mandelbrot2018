@@ -1,10 +1,11 @@
 import sys
 from PyQt5 import QtGui, QtCore, QtWidgets
 
-from mandelbrot_view import MandelbrotWidget
+from view_display import MandelbrotWidget
+from controller import MandelbrotController
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MyApplication(QtWidgets.QMainWindow):
     def __init__(self, app):
         #
         # MainWindow is, as you might expect, the main window
@@ -12,16 +13,32 @@ class MainWindow(QtWidgets.QMainWindow):
         # toolbars and probably other stuff.
         #
         # Call __init__ for the parent class to initialize things.
-        super(MainWindow, self).__init__()
+        super(MyApplication, self).__init__()
+
         #
-        # Keep a reference to the app so we can explicitly call self.app.processEvents()
+        # Keep a reference to the app so we can explicitly call self.app.processEvents().
+        # You won't have to worry about this for a while. You'll know when you need it.
         #
         self.app = app
+
+        #
+        # Setup the main display window.
+        #
+        self.setup_window()
+
+        #
+        # The Controller is where the code will live that serves an an interface between
+        # our View (all the PyQt UI code) and our Model (the Mandelbrot set code).
+        #
+        self.controller = MandelbrotController(self.geometry().width(), self.geometry().height())
+
         #
         # Initialize the widget that will act as the display.
         #
-        self.display = MandelbrotWidget(self)
+        self.display = MandelbrotWidget(self.controller)
         self.setCentralWidget(self.display)
+        self.display.show()
+
         #
         # Create actions, menus, toolbars and statusbar
         #
@@ -29,46 +46,59 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_menus()
         self.create_tool_bars()
         self.create_status_bar()
+
         #
-        # Setup the main display window.
+        # This example only has one item in the main window. If you write
+        # a program where you have multiple items in the main window then
+        # you can control the layout of those items. Layout here means
+        # the relationship between the items on the screen. This can
+        # become complicated as users resize things, so "layouts" really
+        # help with that.
         #
-        self.setup_window()
+        # There are: Vertical Box Layouts (QVBoxLayout), Horizontal Box
+        # Layouts (QHBoxLayout) and Grid Layouts (QGridLayout).
         #
-        # I don't know if we need this stuff or not. Tutorials vary.
+        # Try it without these lines commented out. It is a subtle difference.
+        # See the layouts examples for, well, examples.
         #
-        #
-        # Create a seperate widget to control the layout of our window.
-        # This example shows the Vertical Box Layout (QVBoxLayout). You
-        # could also do a horizontal box (QHBoxLayout) or a grid layout
-        # (QGridLayout).
-        #
-        # mainWidget = QtWidgets.QWidget(self)
-        # self.setCentralWidget(mainWidget)
-        # mainLayout = QtWidgets.QVBoxLayout()
-        # mainLayout.addWidget(self.display)
-        # self.setLayout(mainLayout)
-        self.display.show()
+        #mainLayout = QtWidgets.QVBoxLayout()
+        #mainLayout.addWidget(self.display)
+        #self.setLayout(mainLayout)
 
     def setup_window(self):
-        """Just putting a bunch of loosely related window setup stuff together here."""
+        """
+        Just putting a bunch of loosely related window setup stuff together here. This could
+        have gone in __init__(), but it was getting long.
+        """
+        #
         # Starting size of window. I don't think this is required.
+        #
         xSize = 500
         ySize = 400
         self.resize(xSize, ySize)
-        # Starting coordinates of the window will be centered.
-        screen = QtWidgets.QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        xLocation = (screen.width() - size.width()) / 2
-        yLocation = (screen.height() - size.height()) / 2
+
+        #
+        # Starting coordinates of the window. This centers it on the desktop. Optional.
+        #
+        desktop = QtWidgets.QDesktopWidget().screenGeometry()
+        myWindow = self.geometry()
+        xLocation = (desktop.width() - myWindow.width()) / 2
+        yLocation = (desktop.height() - myWindow.height()) / 2
         self.move(xLocation, yLocation)
-        # Get things ready
-        self.setWindowTitle("Mandelbrot Set")
+
+        #
+        # Misc window settings that you can use.
+        #
+        self.setWindowTitle("Title of my program")
         self.setWindowIcon(QtGui.QIcon('./icons/hexagon.png'))
         self.statusBar().showMessage('Ready')
 
     def create_actions(self):
-        """Setup an action that can be associated with menus, buttons,
-           shortcuts and taskbars."""
+        """
+        Setup an action that can be associated with menus, buttons, shortcuts and taskbars.
+        Anything action that is initiated by interacting with the user interface (as opposed
+        to clicking directly in a window is setup here.
+        """
         #
         # Root is where the application exists in the directory structure.
         #
@@ -79,9 +109,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                             statusTip="Exit the application",
                                             triggered=self.quit)
 
-        self.newAction = QtWidgets.QAction(QtGui.QIcon(root + '/icons/new.png'),
+        self.newAction = QtWidgets.QAction(QtGui.QIcon(root + '/icons/new.png'),   # Note that icon is optional.
                                            "&New", self,
-                                           shortcut=QtGui.QKeySequence.New,
+                                           shortcut=QtGui.QKeySequence.New,  #Some shortcuts are defined by the OS.
                                            statusTip="Start a new fractal",
                                            triggered=self.new)
 
@@ -103,9 +133,12 @@ class MainWindow(QtWidgets.QMainWindow):
                                               triggered=self.save_as)
 
         self.aboutAction = QtWidgets.QAction("&About", self,
-                                             statusTip="More information about Paterson's Worms",
+                                             statusTip="More information about the Mandelbrot Set",
                                              triggered=self.about)
 
+        #
+        # Not all actions are available at all times. This is how you set that.
+        #
         self.openAction.setEnabled(False)
         self.saveAction.setEnabled(False)
         self.saveAsAction.setEnabled(False)
@@ -137,17 +170,23 @@ class MainWindow(QtWidgets.QMainWindow):
         #
         # Lets add an ugly slider to the toolbar.
         #
-        self.speedSlider = QtWidgets.QSlider()
-        self.speedSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.speedSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.speedSlider.setTickInterval(100)
-        self.speedSlider.setMinimum(1)
-        self.speedSlider.setMaximum(1000)
-        self.speedSlider.setValue(500)
-        self.speedSlider.setMaximumWidth(300)
-        self.speedSlider.setMinimumWidth(150)
-        # self.speedSlider.valueChanged.connect(self.display.set_timer_base_speed)
-        self.fileToolBar.addWidget(self.speedSlider)
+        self.depthSlider = QtWidgets.QSlider()
+        self.depthSlider.setOrientation(QtCore.Qt.Horizontal)
+        self.depthSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
+        self.depthSlider.setTickInterval(100)
+        self.depthSlider.setMinimum(0)
+        self.depthSlider.setMaximum(1000)
+        self.depthSlider.setValue(50)
+        self.depthSlider.setMaximumWidth(300)
+        self.depthSlider.setMinimumWidth(150)
+        self.fileToolBar.addWidget(self.depthSlider)
+
+        #
+        # Connect the slider to a method. Note that the value of the slider is
+        # automatically sent to the method as the first parameter. Wouldn't it
+        # be nice if it only updated when the user was finished moving it?
+        #
+        self.depthSlider.valueChanged.connect(self.display.set_lines)
 
     def create_status_bar(self):
         self.statusBar().showMessage("Ready")
@@ -159,21 +198,24 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.statusBar().addPermanentWidget(self.progressBar)
 
     def new(self):
-        pass
+        self.controller.new()
+        self.update()
 
     def open(self):
-        pass
+        self.controller.open()
 
     def save(self):
-        pass
+        self.controller.save()
 
     def save_as(self):
-        pass
+        self.controller.save_as()
 
     def quit(self):
+        self.controller.quit()
         self.close()
 
     def about(self):
+        self.controller.about()
         QtWidgets.QMessageBox.about(self, "Mandelbrot Set",
                                     "I should <b>probably</b> put some "
                                     "real text in here.")
@@ -189,28 +231,3 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def keyReleaseEvent(self, event):
         print("key release")
-
-
-def main():
-    #
-    # Setup the application and pass it any command line
-    # arguments that might be present.
-    #
-    app = QtWidgets.QApplication(sys.argv)
-    #
-    # Create a new window and show it to the user. Then
-    # start the applications main event loop.
-    #
-    mainWin = MainWindow(app)
-    mainWin.show()
-    #
-    # Execute the application (and hence the window), enter the application's
-    # main event loop, and service user requests until the user terminates the
-    # application. Then exit returning and exit conditions.
-    #
-    exitCondition = app.exec_()
-    sys.exit(exitCondition)
-
-
-if __name__ == '__main__':
-    main()

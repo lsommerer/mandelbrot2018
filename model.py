@@ -1,5 +1,10 @@
 
 class ComplexNumber(complex):
+    """
+    In the past, I've had classes write their own complex number class, but seeing as we're a little
+    pressed for time, and that you hvae done just a little more with objects than they did in the past,
+    we will just inherit from Python's built in complex number class.
+    """
 
     def in_mandelbrot(self, maxDepth = 10):
         """
@@ -75,13 +80,13 @@ class ComplexPlane(object):
         return complexNumber
 
     def pixel(self,complexNumber):
-        """Given a complex number, return the x,y coordinates of the associated pixel."""
+        """
+        Given a complex number, return the x,y coordinates of the associated pixel. See if you
+        can implement this.
+        """
         pass
 
-    def __iter__(self):
-        return self
-
-    def __next__(self):
+    def all_points(self):
         """
         Allow someone to iterate through all of the pixels that make up this complex plane. Note that we can't
         iterate over the points, because there are an infinite number of them.
@@ -95,7 +100,6 @@ class ComplexPlane(object):
         for x in range(1,self.xResolution):
             for y in range(1,self.yResolution):
                 yield self.point(x,y), x, y
-        raise StopIteration
 
 def main():
     upperLeft = ComplexNumber(-2, 2)
@@ -106,8 +110,9 @@ def main():
     print(plane.min)
     print(plane.max)
     print(plane.point(1,1))
-    for complexNumber, x, y in plane:
-        print(f'({x},{y})')
+    for complexNumber, x, y in plane.all_points():
+       print(f'({x},{y}) = {complexNumber}')
+
 
 if __name__ == '__main__':
     main()
