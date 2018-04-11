@@ -6,9 +6,11 @@ class MandelbrotController(object):
     def __init__(self, xResolution, yResolution):
         self.xResolution = xResolution
         self.yResolution = yResolution
-        self.upperLeft = ComplexNumber(-3, 3)
-        self.lowerRight = ComplexNumber(3, -3)
+        self.upperLeft = ComplexNumber(-2, 1.5)
+        self.lowerRight = ComplexNumber(1, -1.5)
         self.depth = 10
+
+        self.plane = ComplexPlane(self.upperLeft, self.lowerRight, xResolution, yResolution)
 
     def quit(self):
         pass

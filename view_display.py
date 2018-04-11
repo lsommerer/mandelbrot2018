@@ -1,9 +1,5 @@
 import sys, random
-from time import sleep, clock
 from PyQt5 import QtGui, QtCore, QtWidgets, QtMultimedia
-
-from model import ComplexNumber
-
 
 class MandelbrotWidget(QtWidgets.QWidget):
 
@@ -37,15 +33,24 @@ class MandelbrotWidget(QtWidgets.QWidget):
         self.background.load(root + '/graphics/background.jpg')
 
         #
-        # This is an example of connecting a widget (slider) to an instance variable.
+        # You can have a painter draw directly onto this widget, but you have more
+        # options when you draw on an image. We will do that a little later.
+        #
+        #self.image = QtGui.QImage(self.width(), self.height(), QtGui.QImage.Format_RGB32)
+        #self.image.fill(0)
+
+
+        #
+        # This is an example of connecting a widget (slider) to an instance variable. It is
+        # only for drawing the lines in this example. You won't need it.
         #
         self.lines = 50
 
 
     def paintEvent(self, event):
         """
-        By magic, this event occasionally gets called. Maybe on self.update()? It is where you
-        call all of the drawing to the screen that you want to do.
+        By magic, this event occasionally gets called. Maybe on self.update()? Certainly on
+        a window resize.
         """
         painter = QtGui.QPainter(self)
         rectangle = self.contentsRect()
@@ -56,9 +61,19 @@ class MandelbrotWidget(QtWidgets.QWidget):
         painter.drawPixmap(rectangle, self.background, rectangle)
 
         #
+        # If we were drawing on an image, we would need to do some resizing
+        # stuff like this. We will do this eventually.
+        #
+        #newSize = self.size()
+        #self.image = self.image.scaled(newSize)
+        #painter.drawImage(0, 0, self.image)
+
+
+        #
         # Do any drawing that you need to do next.
         #
         self.draw_random_lines(painter)
+        #self.mandelbrot_random_walk()
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Up]:
@@ -96,6 +111,27 @@ class MandelbrotWidget(QtWidgets.QWidget):
             pen = QtGui.QPen(color, penWidth)
             painter.setPen(pen)
             painter.drawLine(x1, y1, x2, y2)
+
+    def mandelbrot_random_walk(self):
+        #
+        # Get the pixels in random order.
+        #
+        pixels = []
+        for pixel in self.controller.plane.all_points():
+            pixels.append(pixel)
+        random.shuffle(pixels)
+
+        point = 0
+        x = 1
+        y = 2
+
+        painter = QtGui.QPainter(self.image)
+
+        for pixel in pixels[:500]:
+            if pixel[point].in_mandelbrot(self.controller.depth):
+                painter.setPen(QtCore.Qt.white)
+                painter.drawPoint(pixel[x], pixel[y])
+
 
     def set_lines(self, lines):
         self.lines = lines

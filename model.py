@@ -1,3 +1,4 @@
+import random
 
 class ComplexNumber(complex):
     """
@@ -99,7 +100,9 @@ class ComplexPlane(object):
         """
         for x in range(1,self.xResolution):
             for y in range(1,self.yResolution):
-                yield self.point(x,y), x, y
+                yield (self.point(x,y), x, y)
+
+
 
 def main():
     upperLeft = ComplexNumber(-2, 2)
@@ -112,7 +115,9 @@ def main():
     print(plane.point(1,1))
     for complexNumber, x, y in plane.all_points():
        print(f'({x},{y}) = {complexNumber}')
-
+    print('random')
+    for complexNumber, x, y in plane.random_points():
+        print(f'({x},{y}) = {complexNumber}')
 
 if __name__ == '__main__':
     main()
