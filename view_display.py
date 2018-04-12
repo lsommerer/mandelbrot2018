@@ -26,26 +26,18 @@ class MandelbrotWidget(QtWidgets.QWidget):
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         #
-        # You can set a background if you'd like:
+        # You can set a background if you'd like, but we are overriding it next in this case.
         #
-        self.background = QtGui.QPixmap()
-        root = QtCore.QFileInfo(__file__).absolutePath()
-        self.background.load(root + '/graphics/background.jpg')
+        #self.background = QtGui.QPixmap()
+        #root = QtCore.QFileInfo(__file__).absolutePath()
+        #self.background.load(root + '/graphics/background.jpg')
 
         #
         # You can have a painter draw directly onto this widget, but you have more
         # options when you draw on an image. We will do that a little later.
         #
-        #self.image = QtGui.QImage(self.width(), self.height(), QtGui.QImage.Format_RGB32)
-        #self.image.fill(0)
-
-
-        #
-        # This is an example of connecting a widget (slider) to an instance variable. It is
-        # only for drawing the lines in this example. You won't need it.
-        #
-        self.lines = 50
-
+        self.image = QtGui.QImage(self.width(), self.height(), QtGui.QImage.Format_RGB32)
+        self.image.fill(0)
 
     def paintEvent(self, event):
         """
@@ -58,22 +50,22 @@ class MandelbrotWidget(QtWidgets.QWidget):
         #
         # Set Background
         #
-        painter.drawPixmap(rectangle, self.background, rectangle)
+        #painter.drawPixmap(rectangle, self.background, rectangle)
 
         #
-        # If we were drawing on an image, we would need to do some resizing
-        # stuff like this. We will do this eventually.
+        # Note that this isn't quite right, because when we resize we also need to
+        # let the controller know that the resolutoin is different so that it can
+        # supply the correct points in the future.
         #
-        #newSize = self.size()
-        #self.image = self.image.scaled(newSize)
-        #painter.drawImage(0, 0, self.image)
+        newSize = self.size()
+        self.image = self.image.scaled(newSize)
+        painter.drawImage(0, 0, self.image)
 
 
         #
         # Do any drawing that you need to do next.
         #
-        self.draw_random_lines(painter)
-        #self.mandelbrot_random_walk()
+        self.mandelbrot_random_walk()
 
     def keyPressEvent(self, event):
         if event.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Up]:
@@ -90,27 +82,6 @@ class MandelbrotWidget(QtWidgets.QWidget):
             print('up')
         else:
             print('down')
-
-    def draw_random_lines(self, painter):
-        width = self.width()
-        height = self.height()
-        for x in range(self.lines):
-            x1 = random.randint(0, width)
-            y1 = random.randint(0, height)
-            x2 = random.randint(0, width)
-            y2 = random.randint(0, height)
-
-            #
-            # Just your normal HTML color codes. Look them up.
-            #
-            red = random.choice(['ff', 'dd', '99', '66', '33', '00'])
-            green = random.choice(['ff', 'dd', '99', '66', '33', '00'])
-            blue = random.choice(['ff', 'dd', '99', '66', '33', '00'])
-            color = QtGui.QColor('#' + red + green + blue)
-            penWidth = 1
-            pen = QtGui.QPen(color, penWidth)
-            painter.setPen(pen)
-            painter.drawLine(x1, y1, x2, y2)
 
     def mandelbrot_random_walk(self):
         #
@@ -133,8 +104,8 @@ class MandelbrotWidget(QtWidgets.QWidget):
                 painter.drawPoint(pixel[x], pixel[y])
 
 
-    def set_lines(self, lines):
-        self.lines = lines
+    def set_depth(self, depth):
+        self.controller.depth = depth
         self.update()
 
     def mousePressEvent(self, event):

@@ -173,10 +173,10 @@ class MyApplication(QtWidgets.QMainWindow):
         self.depthSlider = QtWidgets.QSlider()
         self.depthSlider.setOrientation(QtCore.Qt.Horizontal)
         self.depthSlider.setTickPosition(QtWidgets.QSlider.TicksBelow)
-        self.depthSlider.setTickInterval(100)
-        self.depthSlider.setMinimum(0)
-        self.depthSlider.setMaximum(1000)
-        self.depthSlider.setValue(50)
+        self.depthSlider.setTickInterval(10)
+        self.depthSlider.setMinimum(1)
+        self.depthSlider.setMaximum(100)
+        self.depthSlider.setValue(5)
         self.depthSlider.setMaximumWidth(300)
         self.depthSlider.setMinimumWidth(150)
         self.fileToolBar.addWidget(self.depthSlider)
@@ -186,7 +186,7 @@ class MyApplication(QtWidgets.QMainWindow):
         # automatically sent to the method as the first parameter. Wouldn't it
         # be nice if it only updated when the user was finished moving it?
         #
-        self.depthSlider.valueChanged.connect(self.display.set_lines)
+        self.depthSlider.valueChanged.connect(self.display.set_depth)
 
     def create_status_bar(self):
         self.statusBar().showMessage("Ready")
